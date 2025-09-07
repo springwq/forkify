@@ -1,24 +1,19 @@
 import * as model from './mode.js';
 import recipeView from './views/recipeView.js';
+import searchView from './views/searchView.js';
+import resultsView from './views/resultsView.js';
 
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-
-const recipeContainer = document.querySelector('.recipe');
-
-const timeout = function (s) {
-  return new Promise(function (_, reject) {
-    setTimeout(function () {
-      reject(new Error(`Request took too long! Timeout after ${s} second`));
-    }, s * 1000);
-  });
-};
 
 // NEW API URL (instead of the one shown in the video)
 // https://forkify-api.jonas.io
 
 ///////////////////////////////////////
 
+if (module.hot) {
+  module.hot.accept();
+}
 
 const controlRecipes = async function () {
   try {
@@ -37,8 +32,28 @@ const controlRecipes = async function () {
   }
 };
 
+const controlSearchResults = async function() {
+  try {
+    resultsView.renderSpinner();
+
+    // Get search query
+    const query = searchView.getQuery();
+    if (!query) return;
+
+    // Lpad Search Results
+    await model.loadSearchResults(query);
+
+    // Render results
+    resultsView.render(model.state.search.results)
+  } catch(err) {
+    console.log(err)
+  }
+};
+
+
 const init = function () {
-  recipeView.addHandlerRender(controlRecipes)
+  recipeView.addHandlerRender(controlRecipes);
+  searchView.addHandlerSearch(controlSearchResults);
 };
 
 init();
